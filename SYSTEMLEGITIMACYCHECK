@@ -1,0 +1,15 @@
+(defvar *valid-license-keys*
+  '("ABC123" "DEF456" "GHI789"))
+
+(defun check-license-key (license-key)
+  (member license-key *valid-license-keys* :test #'string=))
+
+(defun validate-license ()
+  (format t "Enter your license key: ")
+  (let ((license-key (read-line)))
+    (if (check-license-key license-key)
+        (format t "License key is valid. Thank you for your support!")
+        (format t "License key is invalid. This software is not licensed for use."))))
+
+;; Example usage:
+(validate-license)
