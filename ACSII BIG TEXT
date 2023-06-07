@@ -1,0 +1,64 @@
+//This is open source, you can use this for anything!
+
+
+public class ASCIITextGenerator {
+
+    public static void main(String[] args) {
+        String text = "Testing";
+        String font = "standard"; // You can choose different fonts
+
+        String asciiText = generateASCIIText(text, font);
+        System.out.println(asciiText);
+    }
+
+    public static String generateASCIIText(String text, String font) {
+        // Define the ASCII art characters for each letter
+        String[][] characters = {
+            { /* standard font */
+                "   ###   ",
+                "  ## ##  ",
+                " ##   ## ",
+                "##     ##",
+                "#########",
+                "##     ##",
+                "##     ##"
+            },
+            { /* font 2 */
+                "   ###   ",
+                "  ## ##  ",
+                " ##   ## ",
+                "#########",
+                "##     ##",
+                "##     ##",
+                "##     ##"
+            }
+            // Add more fonts here if desired
+        };
+
+        // Convert the text to uppercase
+        text = text.toUpperCase();
+
+        StringBuilder asciiTextBuilder = new StringBuilder();
+
+        // Iterate over each row of the ASCII characters
+        for (int row = 0; row < characters[0].length; row++) {
+            // Iterate over each character in the text
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                int index = c - 'A'; // Get the index of the character in the ASCII array
+
+                // Check if the character is within the range of A-Z
+                if (index >= 0 && index < 26) {
+                    // Get the ASCII art representation of the character for the specified font
+                    String character = characters[index][row];
+                    asciiTextBuilder.append(character).append(" ");
+                }
+            }
+
+            // Add a new line after each row of characters
+            asciiTextBuilder.append("\n");
+        }
+
+        return asciiTextBuilder.toString();
+    }
+}
