@@ -1,0 +1,55 @@
+use crossterm::{
+    cursor::{Hide, MoveTo},
+    event::{Event, KeyCode, KeyEvent},
+    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
+    ExecutableCommand, QueueableCommand, Result,
+};
+use std::io::{stdout, Write};
+
+fn main() -> Result<()> {
+    enable_raw_mode()?; // Enable raw mode to capture key events
+    let mut stdout = stdout();
+
+    // Character attributes
+    let mut character_name = String::new();
+    let mut character_race = String::new();
+    let mut character_class = String::new();
+
+    loop {
+        // Clear the screen
+        stdout.queue(Clear(ClearType::All))?;
+
+        // Print the character customizer options
+        stdout
+            .queue(MoveTo(0, 0))?
+            .write("Character Customizer\n\n".as_bytes())?
+            .write("1. Enter character name: ".as_bytes())?
+            .write(character_name.as_bytes())?
+            .queue(Hide)?;
+
+        // Handle key events
+        if let Event::Key(KeyEvent { code, .. }) = crossterm::event::read()? {
+            match code {
+                KeyCode::Char('1') => {
+                    // Enter character name
+                    stdout.queue(MoveTo(0, 1))?;
+                    stdout.flush()?;
+                    character_name = read_line()?;
+                }
+                KeyCode::Char('q') => break, // Quit the program
+                _ => (),
+            }
+        }
+
+        stdout.flush()?;
+    }
+
+    disable_raw_mode()?; // Disable raw mode before exiting
+    Ok(())
+}
+
+fn read_line() -> Result<String> {
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input)?;
+    Ok(input.trim().to_string())
+}
