@@ -1,0 +1,86 @@
+#include <unordered_map>
+#include <string>
+#include <chrono>
+
+@interface CacheEntry : NSObject
+
+@property (nonatomic, strong) id value;
+@property (nonatomic, strong) NSDate *expirationDate;
+
+@end
+
+@implementation CacheEntry
+
+@end
+
+@interface CacheManager : NSObject
+
+@property (nonatomic, strong) std::unordered_map<std::string, CacheEntry*> cache;
+
+- (void)setObject:(id)object forKey:(NSString *)key withExpiration:(NSTimeInterval)expiration;
+- (id)objectForKey:(NSString *)key;
+- (void)invalidateCacheForKey:(NSString *)key;
+- (void)invalidateAllCache;
+
+@end
+
+@implementation CacheManager
+
+- (void)setObject:(id)object forKey:(NSString *)key withExpiration:(NSTimeInterval)expiration {
+    CacheEntry *entry = [[CacheEntry alloc] init];
+    entry.value = object;
+    
+    NSDate *expirationDate = [NSDate dateWithTimeIntervalSinceNow:expiration];
+    entry.expirationDate = expirationDate;
+    
+    self.cache[key.UTF8String] = entry;
+}
+
+- (id)objectForKey:(NSString *)key {
+    CacheEntry *entry = self.cache[key.UTF8String];
+    
+    if (entry && [entry.expirationDate timeIntervalSinceNow] > 0) {
+        return entry.value;
+    } else {
+        [self.cache removeObjectForKey:key.UTF8String];
+        return nil;
+    }
+}
+
+- (void)invalidateCacheForKey:(NSString *)key {
+    [self.cache removeObjectForKey:key.UTF8String];
+}
+
+- (void)invalidateAllCache {
+    [self.cache removeAllObjects];
+}
+
+@end
+
+// Example usage:
+int main() {
+    CacheManager *cacheManager = [[CacheManager alloc] init];
+    
+    // Set an object in the cache with expiration of 1 minute
+    [cacheManager setObject:@"Cached Object" forKey:@"example" withExpiration:60.0];
+    
+    // Retrieve the object from the cache
+    NSString *cachedObject = [cacheManager objectForKey:@"example"];
+    NSLog(@"Cached Object: %@", cachedObject);
+    
+    // Wait for 2 minutes
+    std::this_thread::sleep_for(std::chrono::seconds(120));
+    
+    // Try to retrieve the expired object from the cache
+    NSString *expiredObject = [cacheManager objectForKey:@"example"];
+    NSLog(@"Expired Object: %@", expiredObject);  // Should be nil
+    
+    // Invalidate the cache for the key
+    [cacheManager invalidateCacheForKey:@"example"];
+    
+    // Try to retrieve the invalidated object from the cache
+    NSString *invalidatedObject = [cacheManager objectForKey:@"example"];
+    NSLog(@"Invalidated Object: %@", invalidatedObject);  // Should be nil
+    
+    return 0;
+}
